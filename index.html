@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Chamadas da Manutenção</title>
+    <style>
+        /* Estilização Global */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #f4f6fb, #eaf0f9);
+            color: #333;
+        }
+
+
+        h1 {
+            text-align: center;
+            color: #004d99;
+            margin: 20px;
+            font-size: 2.5em;
+            text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+
+        /* Container Principal */
+        .diagram-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px;
+        }
+
+
+        /* Blocos Individuais */
+        .block {
+            background-color: #ffffff;
+            border: 1px solid #cce4f7;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            width: 250px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+
+        .block:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .product {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #004d99;
+            margin-bottom: 5px;
+            text-shadow: 0px 2px 4px rgba(0, 77, 153, 0.3);
+        }
+
+
+        .specialist {
+            background-color: #ffcc00;
+            color: #333;
+            font-size: 0.9em;
+            font-weight: bold;
+            border-radius: 5px;
+            padding: 5px;
+            display: inline-block;
+            margin: 5px 0 15px;
+        }
+
+
+        /* Labels e Inputs */
+        .field-label {
+            font-size: 0.9em;
+            color: #004d99;
+            margin-bottom: 5px;
+            text-align: left;
+            display: block;
+        }
+
+
+        .editable {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #99c2e6;
+            background-color: #f9fcff;
+            border-radius: 5px;
+            font-size: 0.9em;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+            color: #333;
+        }
+
+
+        .editable:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+
+        /* Botão de Salvar */
+        button {
+            display: block;
+            margin: 30px auto;
+            padding: 10px 25px;
+            background-color: #00b35f;
+            color: white;
+            font-size: 1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+
+        button:hover {
+            background-color: #008a47;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <h1>Sistema de Chamadas da Manutenção</h1>
+    <div class="diagram-container" id="diagram-container"></div>
+    <button onclick="saveData()">Salvar Dados</button>
+
+    <!-- Firebase Compatível com Namespace -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+          apiKey: "AIzaSyBxfIzYIgO66V_8gg_pf4tdmHdBW4PqxNc",
+  	  authDomain: "site-d3781.firebaseapp.com",
+  	  databaseURL: "https://site-d3781-default-rtdb.firebaseio.com",
+  	  projectId: "site-d3781",
+   	  storageBucket: "site-d3781.firebasestorage.app",
+  	  messagingSenderId: "276860435613",
+   	  appId: "1:276860435613:web:f2bb140255938a39626874",
+   	  measurementId: "G-YFG3SPZDDV"
+ 	 };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Adiciona os produtos
+        const products = [
+            { name: "SP - 501", specialist: "Leandro" },
+            { name: "Sp - 300", specialist: "Leandro" },
+            { name: "SP - 501 Plataforma", specialist: "Leandro" },
+            { name: "Sequêncial", specialist: "Matheus" },
+            { name: "Selaves", specialist: "Girardi" },
+            { name: "Selaves - WiFi", specialist: "Giardi" },
+            { name: "PS/SEL - WiFi", specialist: "Leandro" },
+            { name: "BD15 - BT", specialist: "Alex" },
+            { name: "BD15 - SD/PS", specialist: "Alex" },
+            { name: "BD15 - SD/SEL", specialist: "Alex" },
+            { name: "DSP - 20", specialist: "Matheus" },
+            { name: "PL - 100", specialist: "Matheus" }
+        ];
+
+        const container = document.getElementById("diagram-container");
+
+// Função para carregar os blocos
+function loadBlocks() {
+    products.forEach((product, index) => {
+        const block = document.createElement("div");
+        block.className = "block";
+        block.innerHTML = `
+            <div class="product">${product.name}</div>
+            <div class="specialist">${product.specialist}</div>
+            <label class="field-label">Descrição do Problema:</label>
+            <input type="text" class="editable" id="problema-${index}">
+            <label class="field-label">N° de série:</label>
+            <input type="number" class="editable" id="ndeserie-${index}">
+            <label class="field-label">Status:</label>
+            <input type="text" class="editable" id="status-${index}">
+            <label class="field-label">Cliente:</label>
+            <input type="text" class="editable" id="cliente-${index}">
+            <label class="field-label">Código Cliente:</label>
+            <input type="number" class="editable" id="cod-${index}">
+        `;
+        container.appendChild(block);
+
+        // Recuperar dados do Firebase
+        database.ref(`Pedidos de Manutenção/${index}`).once("value")
+            .then(snapshot => {
+                const data = snapshot.val();
+                if (data) {
+                    document.getElementById(`problema-${index}`).value = data.problema || "";
+                    document.getElementById(`ndeserie-${index}`).value = data.ndeserie || "";
+                    document.getElementById(`status-${index}`).value = data.status || "";
+                    document.getElementById(`cliente-${index}`).value = data.cliente || "";
+                    document.getElementById(`cod-${index}`).value = data.cod || "";
+                }
+            });
+    });
+}
+
+// Função para salvar os dados
+function saveData() {
+    products.forEach((_, index) => {
+        const manutencaoData = {         
+            problema: document.getElementById(`problema-${index}`).value,
+            ndeserie: document.getElementById(`ndeserie-${index}`).value,
+            status: document.getElementById(`status-${index}`).value,
+            cliente: document.getElementById(`cliente-${index}`).value,
+            cod: document.getElementById(`cod-${index}`).value
+        };
+
+        database.ref(`Pedidos de Manutenção/${index}`).set(manutencaoData);
+    });
+    alert("Dados salvos com sucesso!");
+}
+
+        loadBlocks();
+    </script>
+</body>
+</html>
